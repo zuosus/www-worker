@@ -1,0 +1,66 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "worker",
+  "main": "src/worker.js",
+  "compatibility_date": "2025-09-05",
+  "compatibility_flags": [
+    "nodejs_compat",
+    "global_fetch_strictly_public"
+  ],
+  "d1_databases": [
+    {
+      "binding": "D1",
+      "database_name": "",
+      "database_id": "",
+      "experimental_remote": true
+    }
+  ],
+  "kv_namespaces": [
+    {
+      "binding": "KV",
+      "id": "",
+      "experimental_remote": true
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "R2",
+      "bucket_name": "",
+      "experimental_remote": true
+    }
+  ],
+  "browser": {
+    "binding": "BROWSER"
+  },
+  "ai": {
+    "binding": "AI"
+  },
+  "triggers": {
+    "crons": [
+      "* 0 * * *"
+    ]
+  },
+  "vars": {
+    "NO_COLOR": true
+  },
+  "secrets_store_secrets": [
+    {
+      "binding": "JWT_SECRET",
+      "store_id": "7d4345789d06443999d6b2d6cbd59caa",
+      "secret_name": "JWT_SECRET",
+    },
+    {
+      "binding": "TURNSTILE_SECRET_KEY",
+      "store_id": "7d4345789d06443999d6b2d6cbd59caa",
+      "secret_name": "TURNSTILE_SECRET_KEY",
+    },
+  ],
+  "assets": {
+		"binding": "ASSETS",
+		"directory": ".open-next/assets"
+	},
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 1
+  }
+}
