@@ -1,9 +1,9 @@
 'use client'
 
-import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogDescription,
   DialogFooter,
@@ -15,9 +15,6 @@ import { initiatePayment } from './paddle'
 import { initiatePaymentSandbox } from './paddle-sandbox'
 
 export default function CreditsCard() {
-  const [creditBalance] = useState<number>(0)
-  const [loadingCredits] = useState(true)
-
   return (
     <div className="space-y-4">
       <div className="p-4 border rounded-lg">
@@ -28,7 +25,7 @@ export default function CreditsCard() {
         <h3 className="font-medium text-lg">Make a Payment</h3>
         <Dialog>
           <DialogTrigger asChild>
-            <Button className="w-full mt-2">Make a Payment</Button>
+            <Button className="mt-2">Make a Payment</Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
@@ -37,29 +34,33 @@ export default function CreditsCard() {
             </DialogHeader>
             <div className="grid grid-cols-2 gap-4 py-4">
               {[1_000, 2_500, 5_000, 10_000].map((amount) => (
-                <>
-                  <Button
-                    key={amount}
-                    onClick={() => {
-                      void initiatePayment('notes', 2, amount, 'paddle')
-                    }}
-                    className="w-full justify-between h-20 flex flex-col items-center"
-                    variant="outline"
-                  >
-                    <span className="font-bold">${amount/100}</span>
-                  </Button>
-                  <Button
-                    key={amount}
-                    onClick={() => {
-                      void initiatePaymentSandbox('sandbox', 1, amount, 'paddle')
-                    }}
-                    className="w-full justify-between h-20 flex flex-col items-center"
-                    variant="outline"
-                  >
-                    <span className="font-bold">SANDBOX ${ amount/100}</span>
-                  </Button>
-                  <br />
-                </>
+                <p key={amount}>
+                  <DialogClose asChild>
+                    <Button
+                      key={amount}
+                      onClick={() => {
+                        void initiatePayment('notes', 2, amount, 'paddle')
+                      }}
+                      className="justify-between h-20 flex flex-col items-center"
+                      variant="outline"
+                    >
+                      <span className="font-bold">${amount / 100}</span>
+                    </Button>
+                  </DialogClose>
+
+                  <DialogClose asChild>
+                    <Button
+                      key={'sandbox ' + amount}
+                      onClick={() => {
+                        void initiatePaymentSandbox(amount)
+                      }}
+                      className="justify-between h-20 flex flex-col items-center"
+                      variant="secondary"
+                    >
+                      <span className="font-bold">SANDBOX ${amount / 100}</span>
+                    </Button>
+                  </DialogClose>
+                </p>
               ))}
             </div>
             <DialogFooter className="sm:justify-start">
@@ -68,7 +69,6 @@ export default function CreditsCard() {
           </DialogContent>
         </Dialog>
       </div>
-
     </div>
   )
 }

@@ -10,11 +10,13 @@ const paddleWebhook = new Hono<{ Bindings: Bindings }>()
 
 // Handle Paddle webhook callbacks
 paddleWebhook.post('/paddle', async (c: CTX) => {
+  console.log('SANDBOX')
   try {
     // Get the raw body and signature from headers
     const rawBody = await c.req.text()
+    console.log('Paddle webhook endpoint called', rawBody)
     const signature = c.req.header('paddle-signature')
-    const apiKey = await c.env.PADDLE_API_KEY.get()
+    const apiKey = 'pdl_sdbx_apikey_01k4r1t0j8n92g4dqc3h8qp7tz_awsc52zRypJMgBWFMRKnHb_AT0'
 
     if (!signature || !apiKey) {
       console.log('Missing Paddle signature header or Api Key')
@@ -22,24 +24,21 @@ paddleWebhook.post('/paddle', async (c: CTX) => {
     }
 
     // Verify webhook signature
-    const secretKey = await c.env.PADDLE_WEBHOOK_SECRET.get()
-    if (!secretKey) {
-      console.log('PADDLE_WEBHOOK_SECRET not configured')
-      throw new HTTPException(500, { message: 'Webhook secretKey not configured' })
-    }
+    const secretKey = 'pdl_ntfset_01k4r1rw5rjzgf461b9n4y99tx_STco8NJlqOhU7Ol202B0krr9hpUYj7CS'
 
     const paddle = new Paddle(apiKey)
 
     // The `unmarshal` function will validate the integrity of the webhook and return an entity
     const payload = await paddle.webhooks.unmarshal(rawBody, secretKey, signature)
     const data = payload.data as unknown as Record<string, unknown>
-    const customData = data.custom_data as { id: string }
+    console.log('Paddle webhook payload data:', JSON.stringify(data))
+    const customData = (data.customData ?? data.custom_data) as { id: string }
     if (!customData || !customData.id) {
-      console.log('Missing custom data in Paddle webhook payload', JSON.stringify(data))
-      throw new HTTPException(400, { message: 'Missing required Params' })
+      console.log('Missing custom data in Paddle webhook payload')
+      throw new HTTPException(400, { message: 'Missing custom data in payload' })
     }
     const txId = customData.id
-    await persistPaddleEvent(c, txId, rawBody)
+    await persistPaddleEvent(txId)
 
     const db = getDB(c.env.D1)
 
@@ -86,22 +85,13 @@ paddleWebhook.post('/paddle', async (c: CTX) => {
 })
 
 // persist paddle webhook data to R2 storage
-const persistPaddleEvent = async (
-  c: CTX,
-  transactionId: string,
-  rawBody: string
-): Promise<void> => {
-  const r2 = c.env.R2
-  const timestamp = new Date().toISOString()
-  const objectKey = `paddle-webhook/${transactionId}/${timestamp}.json`
-
-  await r2.put(objectKey, rawBody, {
-    httpMetadata: {
-      contentType: 'application/json',
-    },
+const persistPaddleEvent = async (transactionId: string): Promise<void> => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      console.log(`Persisting Paddle event for transaction ID: ${transactionId}`)
+      resolve()
+    }, 0)
   })
-
-  console.log(`Successfully persisted Paddle webhook event to R2: ${objectKey}`)
 }
 
 export default paddleWebhook

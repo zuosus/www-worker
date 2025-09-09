@@ -68,7 +68,7 @@ export const initiatePayment = async (
 
     try {
       getPaddleInstance()?.Checkout.open(paddleCheckoutObject)
-      console.log('handleAddCredits: Paddle checkout opened successfully')
+      console.log('handleAddCredits: Paddle checkout opened successfully:', paddleCheckoutObject)
     } catch (error) {
       console.log('handleAddCredits: Error details:', {
         message: (error as Error).message,

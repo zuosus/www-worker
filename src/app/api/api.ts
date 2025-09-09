@@ -61,7 +61,6 @@ const api = {
       success: boolean
       body: { id: string }
     }>('/api/payments/create-transaction', { project, userId, amount, vendor })
-    console.log('api.createTransaction: Transaction ID:', result.body?.id)
     return result
   },
 }

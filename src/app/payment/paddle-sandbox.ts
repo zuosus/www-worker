@@ -1,6 +1,5 @@
 import { DisplayMode, Environments, initializePaddle, Theme } from '@paddle/paddle-js'
 import { toast } from 'sonner'
-import api from '../api/api'
 import { CheckoutOpenOptions, getPaddleInstance } from '@paddle/paddle-js'
 
 async function setupPaddle(): Promise<void> {
@@ -27,28 +26,14 @@ async function setupPaddle(): Promise<void> {
   }
 }
 
-export const initiatePaymentSandbox = async (
-  project: string,
-  userId: number,
-  amount: number,
-  vendor: string
-) => {
-  project = 'sandbox'
-  userId = 1
-  vendor = 'paddle'
-  if (!project || !userId || !amount || !vendor) {
-    console.log('SANDBOX')
+export const initiatePaymentSandbox = async (amount: number) => {
+  console.log('SANDBOX')
 
-    toast.error('Missing required information to create transaction')
-    console.log('handleAddCredits: Missing required parameters for adding credits')
-    return
-  }
   try {
     // Initialize Paddle first
     await setupPaddle()
 
-    const transaction = await api.createTransaction(project, userId, amount, vendor)
-    console.log('handleAddCredits: Transaction ID:', transaction.body?.id)
+    const transaction = { success: true, body: { id: 1 } }
 
     const paddleCheckoutObject: CheckoutOpenOptions = {
       settings: {
@@ -65,7 +50,7 @@ export const initiatePaymentSandbox = async (
 
     try {
       getPaddleInstance()?.Checkout.open(paddleCheckoutObject)
-      console.log('handleAddCredits: Paddle checkout opened successfully')
+      console.log('handleAddCredits: Paddle checkout opened successfully:', paddleCheckoutObject)
     } catch (error) {
       console.log('handleAddCredits: Error details:', {
         message: (error as Error).message,
