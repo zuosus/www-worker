@@ -1,6 +1,6 @@
 import { DisplayMode, Environments, initializePaddle, Theme } from '@paddle/paddle-js'
 import { toast } from 'sonner'
-import api from '../api/api'
+import api from '@/app/api/api'
 import { CheckoutOpenOptions, getPaddleInstance } from '@paddle/paddle-js'
 
 let paddleInitialized = false
@@ -39,23 +39,32 @@ export const initiatePayment = async (
   project: string,
   userId: number,
   amount: number,
-  vendor: string
+  vendor: string,
+  returnUrl: string
 ) => {
-  if (!project || !userId || !amount || !vendor) {
+  if (!project || !userId || !amount || !vendor || !returnUrl) {
     toast.error('Missing required information to create transaction')
-    console.log('handleAddCredits: Missing required parameters for adding credits')
+    console.log('handleAddMinutes: Missing required parameters for adding minutes')
     return
   }
   try {
     // Initialize Paddle first
     await setupPaddle()
 
-    const transaction = await api.createTransaction(project, userId, amount, vendor)
-    console.log('handleAddCredits: Transaction ID:', transaction.body?.id)
+    const transactionResponse: { success: boolean; body: { id: string } } =
+      await api.createTransaction(project, userId, amount, vendor)
+    if (!transactionResponse || !transactionResponse.body) {
+      throw new Error('Invalid transaction response')
+    }
+
+    console.log('handleAddMinutes: Transaction ID:', transactionResponse.body.id)
 
     const paddleCheckoutObject: CheckoutOpenOptions = {
       settings: {
         displayMode: 'overlay',
+        showAddDiscounts: false,
+        successUrl: returnUrl,
+        variant: 'one-page',
       },
       items: [
         {
@@ -63,14 +72,19 @@ export const initiatePayment = async (
           quantity: 1,
         },
       ],
-      customData: transaction.body,
+      customData: transactionResponse.body,
     }
 
     try {
-      getPaddleInstance()?.Checkout.open(paddleCheckoutObject)
-      console.log('handleAddCredits: Paddle checkout opened successfully:', paddleCheckoutObject)
+      const paddleInstance = getPaddleInstance()
+      if (paddleInstance) {
+        paddleInstance.Checkout.open(paddleCheckoutObject)
+        console.log('handleAddMinutes: Paddle checkout opened successfully:', paddleCheckoutObject)
+      } else {
+        throw new Error('Paddle instance not available')
+      }
     } catch (error) {
-      console.log('handleAddCredits: Error details:', {
+      console.log('handleAddMinutes: Error details:', {
         message: (error as Error).message,
         name: (error as Error).name,
         stack: (error as Error).stack,
@@ -78,7 +92,7 @@ export const initiatePayment = async (
       toast.error('Failed to open checkout')
     }
   } catch (error) {
-    console.log('handleAddCredits: Error details:', {
+    console.log('handleAddMinutes: Error details:', {
       message: (error as Error).message,
       name: (error as Error).name,
       stack: (error as Error).stack,
@@ -90,13 +104,13 @@ export const initiatePayment = async (
 const getPriceIdForAmount = (amount: number): string => {
   console.log('getPriceIdForAmount: Getting price ID for amount:', amount)
   switch (amount) {
-    case 1_000:
+    case 10_00:
       return 'pri_01k4emey837kvhk1nvwnb4545h'
-    case 2_500:
+    case 25_00:
       return 'pri_01k4emj7c8w9kjnk7r767vkdmk'
-    case 5_000:
+    case 50_00:
       return 'pri_01k4emjk4f3q4zrx7mnt94wcs5'
-    case 10_000:
+    case 100_00:
       return 'pri_01k4emjzjgmsjc9sqg92k1a5j9'
     default:
       console.log('getPriceIdForAmount: Returning production price ID for amount:', amount)

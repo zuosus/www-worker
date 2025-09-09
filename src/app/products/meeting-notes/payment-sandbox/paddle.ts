@@ -26,7 +26,7 @@ async function setupPaddle(): Promise<void> {
   }
 }
 
-export const initiatePaymentSandbox = async (amount: number) => {
+export const initiatePayment = async (amount: number, reutrnUrl) => {
   console.log('SANDBOX')
 
   try {
@@ -39,6 +39,9 @@ export const initiatePaymentSandbox = async (amount: number) => {
     const paddleCheckoutObject: CheckoutOpenOptions = {
       settings: {
         displayMode: 'overlay',
+        showAddDiscounts: false,
+        successUrl: reutrnUrl,
+        variant: 'one-page',
       },
       items: [
         {

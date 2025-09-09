@@ -160,7 +160,7 @@ const callbackToService = async (payment: { project: string; amount: number }, u
         )}`
       )
       await sendPushNotification(
-        `Payment update callback for project ${payment.project} with update data: ${JSON.stringify(
+        `SANDBOX: Payment update callback for project ${payment.project} with update data: ${JSON.stringify(
           updateData
         )}`
       )
