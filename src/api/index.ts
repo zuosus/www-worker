@@ -21,7 +21,12 @@ app.use(logger())
 app.use(
   '*',
   cors({
-    origin: ['https://*.zuos.us', 'https://zuos.us', 'http://localhost:3000', 'http://localhost:8787'],
+    origin: [
+      'https://*.zuos.us',
+      'https://zuos.us',
+      'http://localhost:3000',
+      'http://localhost:8787',
+    ],
     allowHeaders: ['Content-Type', 'Authorization', 'Accept', 'User-Agent'],
     maxAge: 600,
     credentials: true,
