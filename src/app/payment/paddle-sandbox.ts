@@ -3,9 +3,7 @@ import { toast } from 'sonner'
 import api from '../api/api'
 import { CheckoutOpenOptions, getPaddleInstance } from '@paddle/paddle-js'
 
-export async function setupPaddle(): Promise<void> {
-  console.log('SANDBOX')
-
+async function setupPaddle(): Promise<void> {
   try {
     const currentTheme = document.documentElement.getAttribute('data-theme')
     const locale = document.documentElement.getAttribute('lang') || 'en'
@@ -39,6 +37,8 @@ export const initiatePaymentSandbox = async (
   userId = 1
   vendor = 'paddle'
   if (!project || !userId || !amount || !vendor) {
+    console.log('SANDBOX')
+
     toast.error('Missing required information to create transaction')
     console.log('handleAddCredits: Missing required parameters for adding credits')
     return
@@ -47,7 +47,7 @@ export const initiatePaymentSandbox = async (
     // Initialize Paddle first
     await setupPaddle()
 
-    const transaction = await api.createTransaction(project, userId, amount * 100, vendor)
+    const transaction = await api.createTransaction(project, userId, amount, vendor)
     console.log('handleAddCredits: Transaction ID:', transaction.body?.id)
 
     const paddleCheckoutObject: CheckoutOpenOptions = {
@@ -87,13 +87,13 @@ export const initiatePaymentSandbox = async (
 const getPriceIdForAmount = (amount: number): string => {
   console.log('getPriceIdForAmount: Getting price ID for amount:', amount)
   switch (amount) {
-    case 10:
+    case 1_000:
       return 'pri_01k4ermjvvkvmwkg4wg9q4ymsh'
-    case 25:
+    case 2_500:
       return 'pri_01k4err6v7a5p1409gnzf0tanz'
-    case 50:
+    case 5_000:
       return 'pri_01k4errgsb4gfshe207awdgwmh'
-    case 100:
+    case 10_000:
       return 'pri_01k4ermz5ep57e5vtbgh47fdxz'
     default:
       console.log('getPriceIdForAmount: Returning sandbox price ID for amount:', amount)

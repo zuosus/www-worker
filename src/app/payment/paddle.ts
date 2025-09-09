@@ -5,7 +5,7 @@ import { CheckoutOpenOptions, getPaddleInstance } from '@paddle/paddle-js'
 
 let paddleInitialized = false
 
-export async function setupPaddle(): Promise<void> {
+async function setupPaddle(): Promise<void> {
   if (paddleInitialized) {
     console.log('setupPaddle: Paddle already initialized, skipping')
     return
@@ -50,7 +50,7 @@ export const initiatePayment = async (
     // Initialize Paddle first
     await setupPaddle()
 
-    const transaction = await api.createTransaction(project, userId, amount * 100, vendor)
+    const transaction = await api.createTransaction(project, userId, amount, vendor)
     console.log('handleAddCredits: Transaction ID:', transaction.body?.id)
 
     const paddleCheckoutObject: CheckoutOpenOptions = {
@@ -90,13 +90,13 @@ export const initiatePayment = async (
 const getPriceIdForAmount = (amount: number): string => {
   console.log('getPriceIdForAmount: Getting price ID for amount:', amount)
   switch (amount) {
-    case 10:
+    case 1_000:
       return 'pri_01k4emey837kvhk1nvwnb4545h'
-    case 25:
+    case 2_500:
       return 'pri_01k4emj7c8w9kjnk7r767vkdmk'
-    case 50:
+    case 5_000:
       return 'pri_01k4emjk4f3q4zrx7mnt94wcs5'
-    case 100:
+    case 10_000:
       return 'pri_01k4emjzjgmsjc9sqg92k1a5j9'
     default:
       console.log('getPriceIdForAmount: Returning production price ID for amount:', amount)

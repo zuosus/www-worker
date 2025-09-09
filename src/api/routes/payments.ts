@@ -19,8 +19,6 @@ payments.post('/create-transaction', async (c: CTX) => {
       amount: number
       vendor: string
     }>()
-    console.log('Request body:', body)
-
     const db = getDB(c.env.D1)
 
     // Insert a pending transaction record
