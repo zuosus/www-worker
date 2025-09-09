@@ -4,6 +4,12 @@ import api from './api/index.js'
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url)
+    
+    const assetResponse = await env.ASSETS.fetch(request);
+    if (assetResponse.ok) {
+      return assetResponse;
+    }
+
     if (url.pathname.startsWith('/api/')) {
       // strip /api prefix
       const newUrl = new URL(url.pathname.substring(4), url.origin)
