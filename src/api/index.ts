@@ -21,7 +21,7 @@ app.use(drizzleMiddleware)
 app.use(
   '*',
   cors({
-    origin: ['https://www.zuos.us', 'https://zuos.us'],
+    origin: ['https://*.zuos.us', 'https://zuos.us'],
     allowHeaders: ['Content-Type', 'Authorization', 'Accept', 'User-Agent'],
     maxAge: 600,
     credentials: true,
