@@ -7,12 +7,6 @@ export { Services }
 
 export default {
   async fetch(request, env, ctx) {
-    // First, try to serve static assets from the ASSETS binding
-    const assetResponse = await env.ASSETS.fetch(request);
-    if (assetResponse.ok) {
-      return assetResponse;
-    }
-
     const url = new URL(request.url)
     if (url.pathname.startsWith('/api/')) {
       // strip /api prefix
@@ -20,6 +14,13 @@ export default {
       const newRequest = new Request(newUrl, request)
       return api.fetch(newRequest, env, ctx)
     }
+    
+    // try to serve static assets from the ASSETS binding
+    const assetResponse = await env.ASSETS.fetch(request);
+    if (assetResponse.ok) {
+      return assetResponse;
+    }
+
     return handler.fetch(request, env, ctx)
   },
 }

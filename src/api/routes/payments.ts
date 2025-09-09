@@ -24,14 +24,8 @@ payments.post('/create-transaction', async (c: CTX) => {
     const db = getDB(c.env.D1)
 
     // Insert a pending transaction record
-    const values = {
-      project: body.project,
-      userId: body.userId,
-      amount: body.amount,
-      vendor: body.vendor,
-    }
-    console.log('Inserting payment record with values:', values)
-    const result = await db.insert(schema.payments).values(values)
+    console.log('Inserting payment record with values:', body)
+    const result = await db.insert(schema.payments).values(body)
 
     return c.json({
       success: true,

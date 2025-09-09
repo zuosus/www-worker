@@ -10,6 +10,7 @@ import { Variables } from 'hono/types'
 import { jwtVerify, SignJWT } from 'jose'
 import { scheduled as scheduledHandler } from '../cron/schedule'
 import webhook from './routes/webhook'
+import payments from './routes/payments'
 
 const app = new Hono<{ Bindings: Bindings; Variables: Variables }>({ router: new TrieRouter() })
 
@@ -20,7 +21,7 @@ app.use(logger())
 app.use(
   '*',
   cors({
-    origin: ['https://*.zuos.us', 'https://zuos.us'],
+    origin: ['https://*.zuos.us', 'https://zuos.us', 'http://localhost:3000', 'http://localhost:8787'],
     allowHeaders: ['Content-Type', 'Authorization', 'Accept', 'User-Agent'],
     maxAge: 600,
     credentials: true,
@@ -28,6 +29,7 @@ app.use(
 )
 
 app.route('/webhook', webhook)
+app.route('/payments', payments)
 
 // JWT utilities
 const createJWT = async (payload: { uid: number }, secret: string, expiresIn = '24h') => {
