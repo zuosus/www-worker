@@ -5,7 +5,6 @@ import { ThemeProvider } from '@/components/theme-provider'
 import Script from 'next/script'
 import CookieConsentComponent from '@/components/custom/cookieConsent'
 import { Toaster } from 'sonner'
-import { PersistentLayout } from './persistent-layout'
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -60,7 +59,7 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <PersistentLayout>{children}</PersistentLayout>
+          {children}
           <CookieConsentComponent />
           <Toaster theme="system" />
         </ThemeProvider>

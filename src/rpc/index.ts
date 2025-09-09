@@ -43,7 +43,7 @@ export default class Services extends WorkerEntrypoint<Bindings> {
   async uploadFiles(files: UploadedFile[]): Promise<{ success: boolean; count: number }> {
     for (const f of files) {
       console.log(`Got file: ${f.name} (${f.type}), size=${f.data.byteLength}`)
-      await this.env.UPLOADS.put(f.name, f.data)
+      await this.env.R2.put(f.name, f.data)
     }
 
     return { success: true, count: files.length }

@@ -1,4 +1,4 @@
-import { CTX } from '../types/ctx'
+import { CTX } from '../types/types'
 
 export class PlatformKV {
   private kv: KVNamespace

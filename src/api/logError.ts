@@ -1,5 +1,5 @@
 import { HTTPException } from 'hono/http-exception'
-import { CTX } from '../types/ctx'
+import { CTX } from '../types/types'
 
 export function logError(err: Error | HTTPException, c: CTX) {
   const path = c.req.path

@@ -2,21 +2,20 @@ import { Hono } from 'hono'
 import { logger } from 'hono/logger'
 import { cors } from 'hono/cors'
 import { Bindings } from '../types/types'
-import { CTX } from '../types/ctx'
+// import { CTX } from '../types/types'
 import { TrieRouter } from 'hono/router/trie-router'
-import { logError } from './logError'
+// import { logError } from './logError'
 import { HTTPException } from 'hono/http-exception'
 import { Variables } from 'hono/types'
-import { drizzleMiddleware } from './db/middleware'
 import { jwtVerify, SignJWT } from 'jose'
 import { scheduled as scheduledHandler } from '../cron/schedule'
+import webhook from './routes/webhook'
 
 const app = new Hono<{ Bindings: Bindings; Variables: Variables }>({ router: new TrieRouter() })
 
 app.get('/ping', (c) => c.text('pong'))
 
 app.use(logger())
-app.use(drizzleMiddleware)
 
 app.use(
   '*',
@@ -27,6 +26,8 @@ app.use(
     credentials: true,
   })
 )
+
+app.route('/webhook', webhook)
 
 // JWT utilities
 const createJWT = async (payload: { uid: number }, secret: string, expiresIn = '24h') => {
@@ -56,7 +57,7 @@ const verifyJWT = async (token: string, secret: string) => {
 
 // error handling
 app.onError((err, c) => {
-  logError(err, c as CTX)
+  // logError(err, c as CTX)
 
   if (err instanceof HTTPException) {
     if (err.status === 401) {

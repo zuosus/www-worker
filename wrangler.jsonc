@@ -7,13 +7,51 @@
     "nodejs_compat",
     "global_fetch_strictly_public"
   ],
- "vars": {
+  "d1_databases": [
+    {
+      "binding": "D1",
+      "database_name": "surname",
+      "database_id": "a264f371-d31a-4975-9052-77c8d6a4af65",
+      "experimental_remote": true,
+      "migrations_dir": "drizzle/migrations"
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "R2",
+      "bucket_name": "uploads",
+      "experimental_remote": true
+    }
+  ],
+  "vars": {
     "NO_COLOR": true
   },
- "assets": {
-		"binding": "ASSETS",
-		"directory": ".open-next/assets"
-	},
+  "secrets_store_secrets": [
+    {
+      "binding": "JWT_SECRET",
+      "store_id": "7d4345789d06443999d6b2d6cbd59caa",
+      "secret_name": "JWT_SECRET",
+    },
+    {
+      "binding": "TURNSTILE_SECRET_KEY",
+      "store_id": "7d4345789d06443999d6b2d6cbd59caa",
+      "secret_name": "TURNSTILE_SECRET_KEY",
+    },
+    {
+      "binding": "PADDLE_WEBHOOK_SECRET",
+      "store_id": "7d4345789d06443999d6b2d6cbd59caa",
+      "secret_name": "PADDLE_WEBHOOK_SECRET",
+    },
+    {
+      "binding": "PADDLE_API_KEY",
+      "store_id": "7d4345789d06443999d6b2d6cbd59caa",
+      "secret_name": "PADDLE_API_KEY",
+    }
+  ],
+  "assets": {
+    "binding": "ASSETS",
+    "directory": ".open-next/assets"
+  },
   "observability": {
     "enabled": true,
     "head_sampling_rate": 1
