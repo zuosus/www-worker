@@ -13,38 +13,30 @@ const payments = new Hono<{ Bindings: Bindings }>()
 payments.post('/create-transaction', async (c: CTX) => {
   console.log('Create transaction endpoint called')
   try {
-    const userId = c.req.param('uid') as string
-    const project = c.req.param('project') as string
-    const vendor = c.req.param('vendor') as string
     const body = await c.req.json<{
+      project: string
+      userId: number
       amount: number
+      vendor: string
     }>()
     console.log('Request body:', body)
-
-    const { amount } = body
-    if (!amount) {
-      throw new HTTPException(400, { message: 'Amount and credit amount are required' })
-    }
 
     const db = getDB(c.env.D1)
 
     // Insert a pending transaction record
-    const result = await db.insert(schema.payments).values({
-      project,
-      userId: Number(userId),
-      amount,
-      vendor,
-    })
+    const values = {
+      project: body.project,
+      userId: body.userId,
+      amount: body.amount,
+      vendor: body.vendor,
+    }
+    console.log('Inserting payment record with values:', values)
+    const result = await db.insert(schema.payments).values(values)
 
     return c.json({
       success: true,
       body: {
         id: result.meta.last_row_id,
-        project,
-        userId,
-        vendor,
-        amount,
-        status: 'pending',
       },
     })
   } catch (error) {
