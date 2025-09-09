@@ -4,7 +4,8 @@ import { eq } from 'drizzle-orm'
 import * as schema from '@/api/db/schema'
 import { getDB } from '@/api/db'
 import { CTX, Bindings } from '@/types/types'
-import { Paddle, EventName } from '@paddle/paddle-node-sdk'
+import { Paddle, EventName, EventEntity } from '@paddle/paddle-node-sdk'
+import { sendPushNotification } from '@/rpc/services/push-notification'
 
 const paddleWebhook = new Hono<{ Bindings: Bindings }>()
 
@@ -27,49 +28,32 @@ paddleWebhook.post('/paddle', async (c: CTX) => {
       console.log('PADDLE_WEBHOOK_SECRET not configured')
       throw new HTTPException(500, { message: 'Webhook secretKey not configured' })
     }
-
     const paddle = new Paddle(apiKey)
 
     // The `unmarshal` function will validate the integrity of the webhook and return an entity
     const payload = await paddle.webhooks.unmarshal(rawBody, secretKey, signature)
-    const data = payload.data as unknown as Record<string, unknown>
-    const customData = data.custom_data as { id: string }
-    if (!customData || !customData.id) {
-      console.log('Missing custom data in Paddle webhook payload', JSON.stringify(data))
-      throw new HTTPException(400, { message: 'Missing required Params' })
-    }
-    const txId = customData.id
-    await persistPaddleEvent(c, txId, rawBody)
 
-    const db = getDB(c.env.D1)
-
-    // Handle different event types
     switch (payload.eventType) {
-      case EventName.TransactionPaid: {
-        // Find the payment record by transaction ID
-        const existingPayment = await db.query.payments.findFirst({
-          where: eq(schema.payments.vendorId, txId),
-        })
-
-        // Update the payment record
-        if (existingPayment) {
-          await db
-            .update(schema.payments)
-            .set({
-              status: data.status as string,
-              vendorId: data.id as string,
-              updatedAt: Math.floor(Date.now() / 1000),
-            })
-            .where(eq(schema.payments.id, Number(txId)))
-
-          // If transaction is completed, update user's credit balance
-          if (data.status === 'completed' && existingPayment.status !== 'completed') {
-            console.log(`${existingPayment.userId}`)
-          }
+      case EventName.TransactionCompleted: {
+        const txId = extractTransactionId(payload.data as unknown as Record<string, unknown>)
+        if (!txId) {
+          console.log(
+            'Missing transaction ID in Paddle webhook payload',
+            JSON.stringify(payload.data)
+          )
+          throw new HTTPException(400, { message: 'Missing transaction ID in payload' })
         }
+        await persistPaddleEvent(c, payload.eventType, txId, rawBody)
+        await transactionCompleted(c, txId, payload)
         break
       }
-
+      case EventName.AdjustmentCreated:
+      case EventName.AdjustmentUpdated: {
+        const paymentId = payload.data.id
+        await persistPaddleEvent(c, payload.eventType, paymentId, rawBody)
+        await adjustmentUpdated()
+        break
+      }
       default:
         console.log(`Unhandled Paddle webhook event: ${payload.eventType}`)
         break
@@ -88,12 +72,13 @@ paddleWebhook.post('/paddle', async (c: CTX) => {
 // persist paddle webhook data to R2 storage
 const persistPaddleEvent = async (
   c: CTX,
-  transactionId: string,
+  eventType: string,
+  id: string,
   rawBody: string
 ): Promise<void> => {
   const r2 = c.env.R2
   const timestamp = new Date().toISOString()
-  const objectKey = `paddle-webhook/${transactionId}/${timestamp}.json`
+  const objectKey = `paddle-webhook/${eventType}/${id}/${timestamp}.json`
 
   await r2.put(objectKey, rawBody, {
     httpMetadata: {
@@ -102,6 +87,93 @@ const persistPaddleEvent = async (
   })
 
   console.log(`Successfully persisted Paddle webhook event to R2: ${objectKey}`)
+}
+
+const extractTransactionId = (data: Record<string, unknown>): string | null => {
+  const customData = (data.customData ?? data.custom_data) as { id: string } | undefined
+  if (customData && customData.id) {
+    return customData.id
+  }
+  return null
+}
+
+const transactionCompleted = async (c: CTX, txId: string, payload: EventEntity) => {
+  const data = payload.data as unknown as Record<string, unknown>
+  const status = data.status as string
+  if (status !== 'completed') {
+    console.log(
+      `Transaction status is not completed for transaction ID: ${txId}, status: ${status}`
+    )
+    throw new HTTPException(500, { message: 'Transaction status is not completed' })
+  }
+
+  const db = getDB(c.env.D1)
+
+  // Find the payment record by transaction ID
+  const existingPayment = await db.query.payments.findFirst({
+    where: eq(schema.payments.vendorId, txId),
+  })
+
+  const items = data.items as [{ quantity: number }]
+  const count = items.length > 0 ? items[0].quantity : 0
+  if (count <= 0) {
+    console.log(
+      `Transaction item quantity is zero or negative for transaction ID: ${txId}, quantity: ${count}`
+    )
+    throw new HTTPException(500, { message: 'Transaction item quantity is zero or negative' })
+  }
+
+  // Update the payment record
+  if (existingPayment) {
+    const toUpdate = {
+      status: data.status as string,
+      vendorId: data.id as string,
+      updatedAt: Math.floor(Date.now() / 1000),
+      amount: existingPayment.amount * count,
+    }
+
+    const result = await db
+      .update(schema.payments)
+      .set(toUpdate)
+      .where(eq(schema.payments.id, Number(txId)))
+
+    if (result.success) {
+      await callbackToService(existingPayment, toUpdate)
+    }
+  } else {
+    console.log(`No existing payment record found for transaction ID: ${txId}`)
+    await sendPushNotification(
+      `Error top up, no existing payment record found for transaction ID: ${txId}. Please investigate the issue.`
+    )
+  }
+}
+
+const adjustmentUpdated = async () => {
+  await sendPushNotification(
+    `Paddle Adjustment Updated event received. Please check the Paddle dashboard for more details.`
+  )
+}
+
+const callbackToService = async (payment: { project: string; amount: number }, update: unknown) => {
+  switch (payment.project) {
+    case 'notes': {
+      //TODO: call Notes service-binding to update payment status
+    }
+    default: {
+      const updateData = update as Record<string, unknown>
+      console.log(
+        `Sending payment update callback for project ${payment.project} with update data: ${JSON.stringify(
+          updateData
+        )}`
+      )
+      await sendPushNotification(
+        `Payment update callback for project ${payment.project} with update data: ${JSON.stringify(
+          updateData
+        )}`
+      )
+      break
+    }
+  }
 }
 
 export default paddleWebhook

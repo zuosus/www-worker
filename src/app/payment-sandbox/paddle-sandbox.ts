@@ -33,6 +33,7 @@ export const initiatePaymentSandbox = async (amount: number) => {
     // Initialize Paddle first
     await setupPaddle()
 
+    // hardcode to user_id == 1
     const transaction = { success: true, body: { id: 1 } }
 
     const paddleCheckoutObject: CheckoutOpenOptions = {
