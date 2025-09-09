@@ -3,7 +3,13 @@ import type { NextConfig } from 'next'
 const nextConfig: NextConfig = {
   output: 'standalone',
   async redirects() {
-    return []
+    return [
+      {
+        source: '/',
+        destination: 'https://notes.zuos.us',
+        permanent: false,
+      }
+    ]
   },
   images: {
     remotePatterns: [
