@@ -56,21 +56,12 @@ const api = {
     handle<T>(fetch(url, { method: 'DELETE', headers: getDefaultHeaders() })),
 
   // Business-specific API methods
-  createTransaction: async (amount: number, creditAmount: number) => {
-    console.log(
-      'api.createTransaction: Creating transaction with amount:',
-      amount,
-      'creditAmount:',
-      creditAmount
-    )
+  createTransaction: async (project: string, userId: number, amount: number, vendor: string) => {
     const result = await api.post<{
       success: boolean
-      body: { id: string; userId: string; creditAmount: number; amount: number; status: string }
-    }>('/api/payments/create-transaction', { amount, creditAmount })
-    console.log('api.createTransaction: Transaction result:', result)
-    console.log('api.createTransaction: Transaction body:', result.body)
+      body: { id: string }
+    }>('/api/payments/create-transaction', { project, userId, amount, vendor })
     console.log('api.createTransaction: Transaction ID:', result.body?.id)
-    console.log('api.createTransaction: Transaction status:', result.body?.status)
     return result
   },
 }

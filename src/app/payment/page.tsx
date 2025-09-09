@@ -37,8 +37,17 @@ export default function CreditsCard() {
     }
   }
 
-  const handleAddCredits = async (amount: number) => {
-    console.log('handleAddCredits: Starting credit addition process for amount:', amount)
+  const handleAddCredits = async (
+    project: string,
+    userId: number,
+    amount: number,
+    vendor: string
+  ) => {
+    if (!project || !userId || !amount || !vendor) {
+      toast.error('Missing required information to create transaction')
+      console.log('handleAddCredits: Missing required parameters for adding credits')
+      return
+    }
     try {
       // Initialize Paddle first
       console.log('handleAddCredits: Initializing Paddle')
@@ -46,14 +55,13 @@ export default function CreditsCard() {
       console.log('handleAddCredits: Paddle initialized successfully')
 
       console.log('handleAddCredits: Creating transaction for amount:', amount * 100)
-      const transaction = await api.createTransaction(amount * 100, amount * 100)
+      const transaction = await api.createTransaction(project, userId, amount * 100, vendor)
       console.log('handleAddCredits: Transaction created:', transaction)
 
       // Open Paddle Checkout using the new SDK
       console.log('handleAddCredits: Preparing to open Paddle checkout')
       console.log('handleAddCredits: Price ID for amount:', getPriceIdForAmount(amount))
       console.log('handleAddCredits: Transaction ID:', transaction.body?.id)
-      console.log('handleAddCredits: Transaction status:', transaction.body?.status)
 
       const paddleCheckoutObject: CheckoutOpenOptions = {
         settings: {
@@ -70,8 +78,6 @@ export default function CreditsCard() {
       console.log('handleAddCredits: Paddle checkout object prepared:', paddleCheckoutObject)
       try {
         const Paddle = getPaddleInstance()
-        console.log('handleAddCredits: Paddle object:', Paddle)
-        console.log('handleAddCredits: Paddle Checkout object:', Paddle?.Checkout)
         console.log(
           'handleAddCredits: Paddle Checkout open function:',
           typeof Paddle?.Checkout.open === 'function'
@@ -79,8 +85,7 @@ export default function CreditsCard() {
         Paddle?.Checkout.open(paddleCheckoutObject)
         console.log('handleAddCredits: Paddle checkout opened successfully')
       } catch (error) {
-        console.error('handleAddCredits: Error opening Paddle checkout:', error)
-        console.error('handleAddCredits: Error details:', {
+        console.log('handleAddCredits: Error details:', {
           message: (error as Error).message,
           name: (error as Error).name,
           stack: (error as Error).stack,
@@ -88,7 +93,6 @@ export default function CreditsCard() {
         toast.error('Failed to open checkout')
       }
     } catch (error) {
-      console.log('handleAddCredits: Error in credit addition process:', error)
       console.log('handleAddCredits: Error details:', {
         message: (error as Error).message,
         name: (error as Error).name,
@@ -124,7 +128,7 @@ export default function CreditsCard() {
                 <Button
                   key={amount}
                   onClick={() => {
-                    void handleAddCredits(amount)
+                    void handleAddCredits('notes', 2, amount, 'paddle')
                   }}
                   className="w-full justify-between h-20 flex flex-col items-center"
                   variant="outline"
