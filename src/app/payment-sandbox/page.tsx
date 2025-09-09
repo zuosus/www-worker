@@ -11,7 +11,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
-import { initiatePayment } from './paddle'
+import { initiatePaymentSandbox } from './paddle-sandbox'
 
 export default function CreditsCard() {
   return (
@@ -36,14 +36,14 @@ export default function CreditsCard() {
                 <p key={amount}>
                   <DialogClose asChild>
                     <Button
-                      key={amount}
+                      key={'sandbox ' + amount}
                       onClick={() => {
-                        void initiatePayment('notes', 2, amount, 'paddle')
+                        void initiatePaymentSandbox(amount)
                       }}
                       className="justify-between h-20 flex flex-col items-center"
-                      variant="outline"
+                      variant="secondary"
                     >
-                      <span className="font-bold">${amount / 100}</span>
+                      <span className="font-bold">SANDBOX ${amount / 100}</span>
                     </Button>
                   </DialogClose>
                 </p>
