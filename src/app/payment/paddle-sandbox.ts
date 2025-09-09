@@ -3,21 +3,16 @@ import { toast } from 'sonner'
 import api from '../api/api'
 import { CheckoutOpenOptions, getPaddleInstance } from '@paddle/paddle-js'
 
-let paddleInitialized = false
-
 export async function setupPaddle(): Promise<void> {
-  if (paddleInitialized) {
-    console.log('setupPaddle: Paddle already initialized, skipping')
-    return
-  }
+  console.log('SANDBOX')
 
   try {
     const currentTheme = document.documentElement.getAttribute('data-theme')
     const locale = document.documentElement.getAttribute('lang') || 'en'
 
     const params = {
-      environment: 'production' as Environments,
-      token: 'live_81f44b5e296c9adac7b38fd0ef5',
+      environment: 'sandbox' as Environments,
+      token: 'test_3d93f0977cdcd4f91304eead0d8',
       checkout: {
         settings: {
           theme: (currentTheme === 'dark' ? 'dark' : 'light') as Theme,
@@ -27,7 +22,6 @@ export async function setupPaddle(): Promise<void> {
       },
     }
     await initializePaddle(params)
-    paddleInitialized = true
     console.log('setupPaddle: Paddle initialized successfully with: ', params)
   } catch (error) {
     console.error('setupPaddle: Failed to initialize Paddle:', error)
@@ -35,12 +29,15 @@ export async function setupPaddle(): Promise<void> {
   }
 }
 
-export const initiatePayment = async (
+export const initiatePaymentSandbox = async (
   project: string,
   userId: number,
   amount: number,
   vendor: string
 ) => {
+  project = 'sandbox'
+  userId = 1
+  vendor = 'paddle'
   if (!project || !userId || !amount || !vendor) {
     toast.error('Missing required information to create transaction')
     console.log('handleAddCredits: Missing required parameters for adding credits')
@@ -91,15 +88,15 @@ const getPriceIdForAmount = (amount: number): string => {
   console.log('getPriceIdForAmount: Getting price ID for amount:', amount)
   switch (amount) {
     case 10:
-      return 'pri_01k4emey837kvhk1nvwnb4545h'
+      return 'pri_01k4ermjvvkvmwkg4wg9q4ymsh'
     case 25:
-      return 'pri_01k4emj7c8w9kjnk7r767vkdmk'
+      return 'pri_01k4err6v7a5p1409gnzf0tanz'
     case 50:
-      return 'pri_01k4emjk4f3q4zrx7mnt94wcs5'
+      return 'pri_01k4errgsb4gfshe207awdgwmh'
     case 100:
-      return 'pri_01k4emjzjgmsjc9sqg92k1a5j9'
+      return 'pri_01k4ermz5ep57e5vtbgh47fdxz'
     default:
-      console.log('getPriceIdForAmount: Returning production price ID for amount:', amount)
+      console.log('getPriceIdForAmount: Returning sandbox price ID for amount:', amount)
       throw new Error('Invalid amount for price ID mapping')
   }
 }
