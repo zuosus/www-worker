@@ -163,10 +163,11 @@ const updateDB = async (
   switch (payment.project) {
     case 'notes': {
       const notesDB = getNotesDB(c.env.D1_NOTES)
+      // hardcode userId to 1 for sandbox testing
       const result = await notesDB
         .update(notesSchema.users)
         .set({ creditBalance: sql`${notesSchema.users.creditBalance} + ${payment.amount}` })
-        .where(eq(notesSchema.users.id, payment.userId))
+        .where(eq(notesSchema.users.id, 1))
       if (!result.success) {
         console.log(
           `Failed to update credit balance for user ID: ${payment.userId} in Notes service`

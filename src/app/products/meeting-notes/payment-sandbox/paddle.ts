@@ -35,6 +35,7 @@ export const initiatePayment = async (userId: number, amount: number, returnUrl:
 
     // Use the provided userId instead of hardcoding to 1
     const transactionResponse = { success: true, body: { id: 1 } }
+    console.log('handleAddCredits: Transaction response received:', transactionResponse)
 
     const paddleCheckoutObject: CheckoutOpenOptions = {
       settings: {
