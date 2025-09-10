@@ -34,7 +34,7 @@ export const initiatePayment = async (userId: number, amount: number, returnUrl:
     await setupPaddle()
 
     // Use the provided userId instead of hardcoding to 1
-    const transaction = { success: true, body: { id: userId } }
+    const transactionResponse = { success: true, body: { id: 1 } }
 
     const paddleCheckoutObject: CheckoutOpenOptions = {
       settings: {
@@ -49,7 +49,7 @@ export const initiatePayment = async (userId: number, amount: number, returnUrl:
           quantity: 1,
         },
       ],
-      customData: transaction.body,
+      customData: transactionResponse.body,
     }
 
     try {

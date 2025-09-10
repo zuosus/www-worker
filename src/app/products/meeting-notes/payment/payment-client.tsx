@@ -56,7 +56,7 @@ export default function PaymentPageClient({
 
   const handlePurchase = (amount: number) => {
     setIsLoading(amount)
-    initiatePayment('notes', userId, amount, 'paddle', returnUrl)
+    initiatePayment('notes-sandbox', userId, amount, 'paddle', returnUrl)
       .catch((error) => {
         toast.error('Failed to initiate payment. Please try again.')
         console.error('Payment error:', error)
@@ -226,12 +226,14 @@ export default function PaymentPageClient({
         </div>
 
         {/* No Refund Policy */}
-        <Card className="mb-8 border-destructive">
-          <CardHeader>
-            <CardTitle className="text-destructive">No Refund Policy</CardTitle>
+        <Card className="mb-8 border-muted bg-muted/50 max-w-2xl mx-auto">
+          <CardHeader className="p-4">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              No Refund Policy
+            </CardTitle>
           </CardHeader>
-          <CardContent>
-            <p className="text-muted-foreground">
+          <CardContent className="p-4 pt-0">
+            <p className="text-xs text-muted-foreground">
               All credits purchased are non-refundable. We do not issue refunds for any reason once
               credits have been purchased.
             </p>

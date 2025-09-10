@@ -3,10 +3,11 @@ import { HTTPException } from 'hono/http-exception'
 import { CTX, Bindings } from '@/types/types'
 import { Paddle, EventName, EventEntity } from '@paddle/paddle-node-sdk'
 import * as schema from '@/api/db/schema'
+import * as notesSchema from '@/api/db/notes_schema'
 import { sendPushNotification } from '@/rpc/services/push-notification'
 import { toast } from 'sonner'
-import { eq } from 'drizzle-orm'
-import { getDB } from '@/api/db'
+import { eq, sql } from 'drizzle-orm'
+import { getDB, getNotesDB } from '@/api/db'
 
 const paddleWebhook = new Hono<{ Bindings: Bindings }>()
 
@@ -97,12 +98,19 @@ const extractTransactionId = (data: Record<string, unknown>): string | null => {
 }
 
 const transactionCompleted = async (c: CTX, txId: string, payload: EventEntity) => {
+  c.executionCtx.waitUntil(
+    sendPushNotification(
+      // eslint-disable-next-line
+      `SANDBOX: Paddle Get Paid: ${payload.data.currency}${payload.data.payments[0].amount / 100}`
+    )
+  )
+
   const data = payload.data as unknown as Record<string, unknown>
   const db = getDB(c.env.D1)
 
   // Find the payment record by transaction ID
   const existingPayment = await db.query.payments.findFirst({
-    where: eq(schema.payments.vendorId, txId),
+    where: eq(schema.payments.id, parseInt(txId)),
   })
 
   const items = data.items as [{ quantity: number }]
@@ -130,7 +138,7 @@ const transactionCompleted = async (c: CTX, txId: string, payload: EventEntity) 
       .where(eq(schema.payments.id, Number(txId)))
 
     if (result.success) {
-      await callbackToService(existingPayment, toUpdate)
+      await updateDB(c, existingPayment, toUpdate)
     }
   } else {
     console.log(`No existing payment record found for transaction ID: ${txId}`)
@@ -147,20 +155,32 @@ const adjustmentUpdated = async () => {
   )
 }
 
-const callbackToService = async (payment: { project: string; amount: number }, update: unknown) => {
+const updateDB = async (
+  c: CTX,
+  payment: { project: string; amount: number; userId: number },
+  update: unknown
+) => {
   switch (payment.project) {
     case 'notes': {
-      //TODO: call Notes service-binding to update payment status
+      const notesDB = getNotesDB(c.env.D1_NOTES)
+      const result = await notesDB
+        .update(notesSchema.users)
+        .set({ creditBalance: sql`${notesSchema.users.creditBalance} + ${payment.amount}` })
+        .where(eq(notesSchema.users.id, payment.userId))
+      if (!result.success) {
+        console.log(
+          `Failed to update credit balance for user ID: ${payment.userId} in Notes service`
+        )
+        await sendPushNotification(
+          `Failed to update credit balance for user ID: ${payment.userId} in Notes service. Please investigate the issue.`
+        )
+      }
+      break
     }
     default: {
       const updateData = update as Record<string, unknown>
       console.log(
         `Sending payment update callback for project ${payment.project} with update data: ${JSON.stringify(
-          updateData
-        )}`
-      )
-      await sendPushNotification(
-        `SANDBOX: Payment update callback for project ${payment.project} with update data: ${JSON.stringify(
           updateData
         )}`
       )

@@ -1,7 +1,6 @@
 import { Hono } from 'hono'
 import { HTTPException } from 'hono/http-exception'
-import { eq } from 'drizzle-orm'
-import { sql } from 'drizzle-orm'
+import { eq, sql } from 'drizzle-orm'
 import * as schema from '@/api/db/schema'
 import * as notesSchema from '@/api/db/notes_schema'
 import { getDB, getNotesDB } from '@/api/db'
@@ -113,7 +112,7 @@ const transactionCompleted = async (c: CTX, txId: string, payload: EventEntity) 
 
   // Find the payment record by transaction ID
   const existingPayment = await db.query.payments.findFirst({
-    where: eq(schema.payments.vendorId, txId),
+    where: eq(schema.payments.id, parseInt(txId)),
   })
 
   const items = data.items as [{ quantity: number }]
@@ -140,7 +139,7 @@ const transactionCompleted = async (c: CTX, txId: string, payload: EventEntity) 
       .where(eq(schema.payments.id, Number(txId)))
 
     if (result.success) {
-      await callbackToService(c, existingPayment, toUpdate)
+      await updateDB(c, existingPayment, toUpdate)
     }
   } else {
     console.log(`No existing payment record found for transaction ID: ${txId}`)
@@ -156,14 +155,13 @@ const adjustmentUpdated = async () => {
   )
 }
 
-const callbackToService = async (
+const updateDB = async (
   c: CTX,
   payment: { project: string; amount: number; userId: number },
   update: unknown
 ) => {
   switch (payment.project) {
     case 'notes': {
-      //TODO: call Notes service-binding to update payment status
       const notesDB = getNotesDB(c.env.D1_NOTES)
       const result = await notesDB
         .update(notesSchema.users)
@@ -183,11 +181,6 @@ const callbackToService = async (
       const updateData = update as Record<string, unknown>
       console.log(
         `Sending payment update callback for project ${payment.project} with update data: ${JSON.stringify(
-          updateData
-        )}`
-      )
-      await sendPushNotification(
-        `Payment update callback for project ${payment.project} with update data: ${JSON.stringify(
           updateData
         )}`
       )
