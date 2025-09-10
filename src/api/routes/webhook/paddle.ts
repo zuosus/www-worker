@@ -123,6 +123,11 @@ const transactionCompleted = async (c: CTX, txId: string, payload: EventEntity) 
       `Transaction item quantity is zero or negative for transaction ID: ${txId}, quantity: ${count}`
     )
     throw new HTTPException(500, { message: 'Transaction item quantity is zero or negative' })
+  } else if (existingPayment?.status === 'completed') {
+    console.log(
+      `Payment record for transaction ID: ${txId} is already marked as completed. Skipping update.`
+    )
+    throw new HTTPException(200, { message: 'Payment record already completed' })
   }
 
   // Update the payment record
