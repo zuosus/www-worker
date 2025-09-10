@@ -14,6 +14,12 @@
       "database_id": "a264f371-d31a-4975-9052-77c8d6a4af65",
       "experimental_remote": true,
       "migrations_dir": "drizzle/migrations"
+    },
+    {
+      "binding": "D1_NOTES",
+      "database_name": "meeting-notes",
+      "database_id": "29fbae55-0288-4d50-951a-31008887a057",
+      "experimental_remote": true,
     }
   ],
   "r2_buckets": [

@@ -3,6 +3,7 @@ import { Context, Input } from 'hono'
 export interface Bindings {
   // bindings
   D1: D1Database
+  D1_NOTES: D1Database
   KV: KVNamespace
   R2: R2Bucket
   AI: Ai

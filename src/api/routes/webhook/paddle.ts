@@ -1,8 +1,10 @@
 import { Hono } from 'hono'
 import { HTTPException } from 'hono/http-exception'
 import { eq } from 'drizzle-orm'
+import { sql } from 'drizzle-orm'
 import * as schema from '@/api/db/schema'
-import { getDB } from '@/api/db'
+import * as notesSchema from '@/api/db/notes_schema'
+import { getDB, getNotesDB } from '@/api/db'
 import { CTX, Bindings } from '@/types/types'
 import { Paddle, EventName, EventEntity } from '@paddle/paddle-node-sdk'
 import { sendPushNotification } from '@/rpc/services/push-notification'
@@ -138,7 +140,7 @@ const transactionCompleted = async (c: CTX, txId: string, payload: EventEntity) 
       .where(eq(schema.payments.id, Number(txId)))
 
     if (result.success) {
-      await callbackToService(existingPayment, toUpdate)
+      await callbackToService(c, existingPayment, toUpdate)
     }
   } else {
     console.log(`No existing payment record found for transaction ID: ${txId}`)
@@ -154,10 +156,28 @@ const adjustmentUpdated = async () => {
   )
 }
 
-const callbackToService = async (payment: { project: string; amount: number }, update: unknown) => {
+const callbackToService = async (
+  c: CTX,
+  payment: { project: string; amount: number; userId: number },
+  update: unknown
+) => {
   switch (payment.project) {
     case 'notes': {
       //TODO: call Notes service-binding to update payment status
+      const notesDB = getNotesDB(c.env.D1_NOTES)
+      const result = await notesDB
+        .update(notesSchema.users)
+        .set({ creditBalance: sql`${notesSchema.users.creditBalance} + ${payment.amount}` })
+        .where(eq(notesSchema.users.id, payment.userId))
+      if (!result.success) {
+        console.log(
+          `Failed to update credit balance for user ID: ${payment.userId} in Notes service`
+        )
+        await sendPushNotification(
+          `Failed to update credit balance for user ID: ${payment.userId} in Notes service. Please investigate the issue.`
+        )
+      }
+      break
     }
     default: {
       const updateData = update as Record<string, unknown>

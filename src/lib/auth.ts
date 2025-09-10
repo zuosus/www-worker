@@ -1,12 +1,5 @@
 import { useEffect, useState } from 'react'
 
-export interface User {
-  id: number
-  email: string
-  creditBalance?: number
-  closed?: boolean
-}
-
 export interface DecodedToken {
   uid: number
   exp: number
