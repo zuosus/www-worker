@@ -26,21 +26,21 @@ async function setupPaddle(): Promise<void> {
   }
 }
 
-export const initiatePayment = async (amount: number, reutrnUrl) => {
+export const initiatePayment = async (userId: number, amount: number, returnUrl: string) => {
   console.log('SANDBOX')
 
   try {
     // Initialize Paddle first
     await setupPaddle()
 
-    // hardcode to user_id == 1
-    const transaction = { success: true, body: { id: 1 } }
+    // Use the provided userId instead of hardcoding to 1
+    const transaction = { success: true, body: { id: userId } }
 
     const paddleCheckoutObject: CheckoutOpenOptions = {
       settings: {
         displayMode: 'overlay',
         showAddDiscounts: false,
-        successUrl: reutrnUrl,
+        successUrl: returnUrl,
         variant: 'one-page',
       },
       items: [
@@ -76,13 +76,13 @@ export const initiatePayment = async (amount: number, reutrnUrl) => {
 const getPriceIdForAmount = (amount: number): string => {
   console.log('getPriceIdForAmount: Getting price ID for amount:', amount)
   switch (amount) {
-    case 1_000:
+    case 10_00:
       return 'pri_01k4ermjvvkvmwkg4wg9q4ymsh'
-    case 2_500:
+    case 25_00:
       return 'pri_01k4err6v7a5p1409gnzf0tanz'
-    case 5_000:
+    case 50_00:
       return 'pri_01k4errgsb4gfshe207awdgwmh'
-    case 10_000:
+    case 100_00:
       return 'pri_01k4ermz5ep57e5vtbgh47fdxz'
     default:
       console.log('getPriceIdForAmount: Returning sandbox price ID for amount:', amount)

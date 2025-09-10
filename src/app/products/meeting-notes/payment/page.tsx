@@ -8,12 +8,13 @@ export default async function PaymentPage({
   // Validate the return_url parameter on the server side
   const params = await searchParams
   const returnUrl = params.return_url
+  const userId = params.user_id as number | undefined
 
-  if (!returnUrl || Array.isArray(returnUrl)) {
+  if (!returnUrl || !userId || Array.isArray(returnUrl)) {
     notFound()
   }
 
   const PaymentPageClient = (await import('./payment-client')).default
 
-  return <PaymentPageClient returnUrl={returnUrl} />
+  return <PaymentPageClient returnUrl={returnUrl} userId={userId} />
 }

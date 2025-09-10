@@ -14,7 +14,13 @@ import { initiatePayment } from './paddle'
 import { CreditCard, CheckCircle, Sparkles, Clock, Infinity, FileText, Zap } from 'lucide-react'
 import { toast } from 'sonner'
 
-export default function PaymentPageClient({ returnUrl }: { returnUrl: string }) {
+export default function PaymentPageClient({
+  returnUrl,
+  userId,
+}: {
+  returnUrl: string
+  userId: number
+}) {
   const [isLoading, setIsLoading] = useState<number | null>(null)
 
   const creditPackages = [
@@ -50,7 +56,7 @@ export default function PaymentPageClient({ returnUrl }: { returnUrl: string }) 
 
   const handlePurchase = (amount: number) => {
     setIsLoading(amount)
-    initiatePayment('notes', 2, amount, 'paddle', returnUrl)
+    initiatePayment('notes', userId, amount, 'paddle', returnUrl)
       .catch((error) => {
         toast.error('Failed to initiate payment. Please try again.')
         console.error('Payment error:', error)
@@ -218,6 +224,19 @@ export default function PaymentPageClient({ returnUrl }: { returnUrl: string }) 
             Your minutes will be available immediately after payment completion
           </p>
         </div>
+
+        {/* No Refund Policy */}
+        <Card className="mb-8 border-destructive">
+          <CardHeader>
+            <CardTitle className="text-destructive">No Refund Policy</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-muted-foreground">
+              All credits purchased are non-refundable. We do not issue refunds for any reason once
+              credits have been purchased.
+            </p>
+          </CardContent>
+        </Card>
       </div>
     </div>
   )
