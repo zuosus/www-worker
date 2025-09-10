@@ -98,12 +98,7 @@ const extractTransactionId = (data: Record<string, unknown>): string | null => {
 }
 
 const transactionCompleted = async (c: CTX, txId: string, payload: EventEntity) => {
-  c.executionCtx.waitUntil(
-    sendPushNotification(
-      // eslint-disable-next-line
-      `SANDBOX: Paddle Get Paid: ${payload.data.currency}${payload.data.payments[0].amount / 100}`
-    )
-  )
+  c.executionCtx.waitUntil(sendPushNotification(`SANDBOX: Paddle Get Paid`))
 
   const data = payload.data as unknown as Record<string, unknown>
   const db = getDB(c.env.D1)

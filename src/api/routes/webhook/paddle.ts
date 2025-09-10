@@ -99,6 +99,7 @@ const extractTransactionId = (data: Record<string, unknown>): string | null => {
 }
 
 const transactionCompleted = async (c: CTX, txId: string, payload: EventEntity) => {
+  c.executionCtx.waitUntil(sendPushNotification(`Paddle Get Paid`))
   const data = payload.data as unknown as Record<string, unknown>
   const status = data.status as string
   if (status !== 'completed') {
