@@ -56,7 +56,7 @@ export default function PaymentPageClient({
 
   const handlePurchase = (amount: number) => {
     setIsLoading(amount)
-    initiatePayment('notes-sandbox', userId, amount, 'paddle', returnUrl)
+    initiatePayment('notes', userId, amount, 'paddle', returnUrl)
       .catch((error) => {
         toast.error('Failed to initiate payment. Please try again.')
         console.error('Payment error:', error)

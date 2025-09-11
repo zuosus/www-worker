@@ -10,7 +10,7 @@
 		"lint": "next lint --fix",
 		"format": "prettier --write \"{src,test}/**/*.{ts,tsx}\"",
 		"test": "vitest",
-		"deploy": "./build.sh && opennextjs-cloudflare deploy",
+		"deploy": "./build.sh && wrangler deploy",
 		"preview": "./build.sh && opennextjs-cloudflare preview",
 		"generate": "drizzle-kit generate",
 		"cf-typegen": "wrangler types --env-interface CloudflareEnv ./cloudflare-env.d.ts"
