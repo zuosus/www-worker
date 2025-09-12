@@ -3,13 +3,14 @@ export interface EmailTemplate {
   subject: string
   html?: string
   text?: string
+  attachments?: File[]
 }
 
 export interface EmailOptions {
   from?: string
   replyTo?: string
-  cc?: string[]
-  bcc?: string[]
+  cc?: string | string[]
+  bcc?: string | string[]
 }
 
 /**
@@ -59,8 +60,26 @@ export async function sendEmail(
     if (options.replyTo) {
       payload.reply_to = Array.isArray(options.replyTo) ? options.replyTo : [options.replyTo]
     }
-    if (options.cc?.length) payload.cc = options.cc
-    if (options.bcc?.length) payload.bcc = options.bcc
+    
+    // Handle CC: convert string to array if needed
+    if (options.cc) {
+      payload.cc = Array.isArray(options.cc) ? options.cc : options.cc.split(',').map(email => email.trim())
+    }
+    
+    // Handle BCC: convert string to array if needed
+    if (options.bcc) {
+      payload.bcc = Array.isArray(options.bcc) ? options.bcc : options.bcc.split(',').map(email => email.trim())
+    }
+
+    // Handle attachments if provided
+    if (template.attachments?.length) {
+      payload.attachments = await Promise.all(
+        template.attachments.map(async (file) => ({
+          filename: file.name,
+          content: Buffer.from(await file.arrayBuffer()).toString('base64'),
+        }))
+      )
+    }
 
     if (!payload.html && !payload.text) {
       throw new Error('Email must have either HTML or text content')
